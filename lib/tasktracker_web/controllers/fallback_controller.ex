@@ -17,4 +17,11 @@ defmodule TasktrackerWeb.FallbackController do
     |> put_status(:not_found)
     |> render(TasktrackerWeb.ErrorView, :"404")
   end
+  def call(conn, {:error, loginerrors}) do
+    IO.inspect loginerrors
+
+    conn
+    |> put_status(:unprocessable_entity)
+    |> render(TasktrackerWeb.ChangesetView, "loginerror.json", changeset: loginerrors)
+  end
 end

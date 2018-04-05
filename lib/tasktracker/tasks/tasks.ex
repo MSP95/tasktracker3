@@ -13,13 +13,14 @@ defmodule Tasktracker.Tasks do
 
   ## Examples
 
-      iex> list_tasks()
-      [%Task{}, ...]
+  iex> list_tasks()
+  [%Task{}, ...]
 
   """
   def list_tasks do
     Repo.all(Task)
     |> Repo.preload(:user)
+    |> Repo.preload(:assigned)
   end
 
   @doc """
@@ -29,77 +30,90 @@ defmodule Tasktracker.Tasks do
 
   ## Examples
 
-      iex> get_task!(123)
-      %Task{}
+  iex> get_task!(123)
+  %Task{}
 
-      iex> get_task!(456)
-      ** (Ecto.NoResultsError)
+  iex> get_task!(456)
+  ** (Ecto.NoResultsError)
 
   """
-  def get_task!(id), do: Repo.get!(Task, id)
+  def get_task!(id) do
+    Repo.get!(Task, id)
+    # |> Repo.preload(:user)
+    # |> Repo.preload(:assigned)
+  end
 
   @doc """
   Creates a task.
 
   ## Examples
 
-      iex> create_task(%{field: value})
-      {:ok, %Task{}}
+  iex> create_task(%{field: value})
+  {:ok, %Task{}}
 
-      iex> create_task(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+  iex> create_task(%{field: bad_value})
+  {:error, %Ecto.Changeset{}}
 
   """
   def create_task(attrs \\ %{}) do
-    %Task{}
-    |> Task.changeset(attrs)
-    |> Repo.insert()
+    case %Task{} |> Task.changeset(attrs) |> Repo.insert() do
+      {:ok, task} ->
+        {:ok, Repo.preload(task, :user) |> Repo.preload(:assigned)}
+      {:error, changeset} ->
+        {:error, changeset}
+      end
+    end
+
+    @doc """
+    Updates a task.
+
+    ## Examples
+
+    iex> update_task(task, %{field: new_value})
+    {:ok, %Task{}}
+
+    iex> update_task(task, %{field: bad_value})
+    {:error, %Ecto.Changeset{}}
+
+    """
+    def update_task(%Task{} = task, attrs) do
+      # IO.inspect task
+      case task
+      |> Task.changeset(attrs)
+      |> Repo.update() do
+      {:ok, task0}  ->
+        {:ok, task0 |> Repo.preload(:user) |> Repo.preload(:assigned)}
+      {_error , changeset} ->
+        {:error, changeset}
+      end
+    end
+
+    @doc """
+    Deletes a Task.
+
+    ## Examples
+
+    iex> delete_task(task)
+    {:ok, %Task{}}
+
+    iex> delete_task(task)
+    {:error, %Ecto.Changeset{}}
+
+    """
+    def delete_task(%Task{} = task) do
+      Repo.delete(task)
+    end
+
+    @doc """
+    Returns an `%Ecto.Changeset{}` for tracking task changes.
+
+    ## Examples
+
+    iex> change_task(task)
+    %Ecto.Changeset{source: %Task{}}
+
+    """
+    def change_task(%Task{} = task) do
+      Task.changeset(task, %{})
+    end
   end
-
-  @doc """
-  Updates a task.
-
-  ## Examples
-
-      iex> update_task(task, %{field: new_value})
-      {:ok, %Task{}}
-
-      iex> update_task(task, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_task(%Task{} = task, attrs) do
-    task
-    |> Task.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a Task.
-
-  ## Examples
-
-      iex> delete_task(task)
-      {:ok, %Task{}}
-
-      iex> delete_task(task)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_task(%Task{} = task) do
-    Repo.delete(task)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking task changes.
-
-  ## Examples
-
-      iex> change_task(task)
-      %Ecto.Changeset{source: %Task{}}
-
-  """
-  def change_task(%Task{} = task) do
-    Task.changeset(task, %{})
-  end
-end

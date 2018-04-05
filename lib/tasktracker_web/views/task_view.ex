@@ -12,12 +12,13 @@ defmodule TasktrackerWeb.TaskView do
   end
 
   def render("task.json", %{task: task}) do
+    # IO.inspect task.assigned
     %{id: task.id,
       title: task.title,
       description: task.description,
       timetrack: task.timetrack,
       completed: task.completed,
       user: render_one(task.user, UserView, "user.json"),
-      assigned: render_one(task.user, UserView, "user.json")}
+      assigned: render_one(task.assigned, UserView, "user.json")}
   end
 end

@@ -15,12 +15,12 @@ defmodule Tasktracker.Tasks.Task do
   end
 
   @doc false
-  def changeset(%Task{} = task, attrs) do
+  def changeset(task, attrs) do
     task
     |> cast(attrs, [:title, :description, :completed, :user_id, :assigned_id,:timetrack])
-    |> validate_required([:title, :description, :completed,:timetrack])
+    |> validate_required([:assigned_id, :user_id, :title, :description, :completed,:timetrack])
     |> validate_change(:timetrack, fn :timetrack, minutes ->
-      if rem(minutes, 15) == 0 do
+      if rem(minutes, 15) == 0 && minutes >= 0 do
         []
       else
         [timetrack: "Invalid time. Please enter time in 15 minute intervals"]

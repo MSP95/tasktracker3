@@ -12,6 +12,7 @@ defmodule TasktrackerWeb.UserController do
   end
 
   def create(conn, %{"user" => user_params}) do
+
     with {:ok, %User{} = user} <- Users.create_user(user_params) do
       conn
       |> put_status(:created)

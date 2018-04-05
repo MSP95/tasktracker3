@@ -37,6 +37,13 @@ defmodule Tasktracker.Users do
   """
   def get_user!(id), do: Repo.get!(User, id)
 
+  def get_and_auth_user(name, pass) do
+    user = Repo.one(from u in User, where: u.name == ^name)
+    case Comeonin.Argon2.check_pass(user, pass) do
+      {:ok, user0} -> {:ok, user0}
+      {_error, changeset} -> {:error, changeset}
+    end
+  end
   @doc """
   Creates a user.
 
@@ -50,6 +57,7 @@ defmodule Tasktracker.Users do
 
   """
   def create_user(attrs \\ %{}) do
+
     %User{}
     |> User.changeset(attrs)
     |> Repo.insert()

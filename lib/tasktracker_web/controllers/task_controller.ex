@@ -11,13 +11,19 @@ defmodule TasktrackerWeb.TaskController do
     render(conn, "index.json", tasks: tasks)
   end
 
-  def create(conn, %{"task" => task_params}) do
+  def create(conn, %{"token"=> token, "task" => task_params}) do
+
+    {:ok, user_id} = Phoenix.Token.verify(conn, "auth token", token, max_age: 86400)
+    if task_params["user_id"] != user_id do
+      raise "Unauthorized user"
+    end
     with {:ok, %Task{} = task} <- Tasks.create_task(task_params) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", task_path(conn, :show, task))
       |> render("show.json", task: task)
     end
+
   end
 
   def show(conn, %{"id" => id}) do
@@ -25,11 +31,16 @@ defmodule TasktrackerWeb.TaskController do
     render(conn, "show.json", task: task)
   end
 
-  def update(conn, %{"id" => id, "task" => task_params}) do
+  def update(conn, %{"id" => id,"token"=> token, "task" => task_params}) do
     task = Tasks.get_task!(id)
-
+    {:ok, user_id} = Phoenix.Token.verify(conn, "auth token", token, max_age: 86400)
+    if task_params["user_id"] != user_id do
+      raise "Unauthorized user"
+    end
     with {:ok, %Task{} = task} <- Tasks.update_task(task, task_params) do
-      render(conn, "show.json", task: task)
+      put_status(conn, :created)
+      |> put_resp_header("location", task_path(conn, :show, task))
+      |> render("show.json", task: task)
     end
   end
 
